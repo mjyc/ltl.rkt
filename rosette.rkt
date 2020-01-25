@@ -6,7 +6,6 @@
 (struct ltl-formula (type value) #:transparent)
 
 (define (ltl-eval formula [lookup (lambda (dummy) #f)])
-  ; (displayln (list "formula" formula))
   (cond
     [(boolean? formula) formula]
     [(symbol? formula) (lookup formula)]
@@ -57,22 +56,16 @@
     ))
 
 (define (ltl-run formula stream)
-  ; (displayln (list "formula" formula "stream" stream))
   (define (step cur-value cur-formula)
-    ; (displayln (list "cur-formula" cur-formula "cur-value" cur-value))
     (define (lookup variable)
-      ; (displayln (list "variable" variable))
-      ; (displayln (list "(equal? variable cur-value)" (equal? variable cur-value)))
       (equal? variable cur-value)
       )
     (ltl-eval cur-formula lookup)
     )
-  ; (define (last-step formula) ...)
   (define f
     (foldl
       step
       formula
       stream))
-  ; (displayln (list "f" f))
   f
   )
