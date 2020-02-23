@@ -1,18 +1,8 @@
 #lang rosette/safe
 
-(require rackunit rackunit/text-ui "./rosette.rkt")
-
-(define (run formula stream)
-  (define (step cur-value cur-formula)
-    (define (lookup variable)
-      (equal? variable cur-value)
-      )
-    (ltl-eval cur-formula lookup)
-    )
-  (foldl
-    step
-    formula
-    stream)
+(require rackunit rackunit/text-ui
+  "./rosette.rkt"
+  (prefix-in logger- "./logger.rkt")
   )
 
 (define (test-next)
@@ -27,7 +17,7 @@
     (define sol (solve
       (assert
         (equal?
-          (run formula stream)
+          (ltl-run formula stream)
           #t)
         )))
     (check-true (sat? sol))
@@ -47,7 +37,7 @@
     (define sol (solve
       (assert
         (equal?
-          (run formula stream)
+          (ltl-run formula stream)
           (ltl-formula 'always 'a))
         )))
     (check-true (sat? sol))
@@ -67,11 +57,27 @@
     (define sol (solve
       (assert
         (equal?
-          (run formula stream)
+          (ltl-run formula stream)
           #t)
         )))
     (check-true (sat? sol))
     (check-equal? (evaluate sb sol) #f)
+    )
+  )
+
+(define (test-eventually2)
+  (test-case
+    "test-eventually2"
+    (define-symbolic sb boolean?)
+
+    (define stream
+      (list 'a 'b 'c 'd 'b))
+    (define formula (ltl-formula 'eventually
+      (ltl-formula 'and
+        (list 'b (ltl-formula 'eventually 'd)))))
+
+    (define actual (ltl-run formula stream))
+    (check-true actual)
     )
   )
 
@@ -80,6 +86,7 @@
     (test-next)
     (test-always)
     (test-eventually)
+    (test-eventually2)
     )
   (run-tests ltl-tests)
   )

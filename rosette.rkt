@@ -1,5 +1,6 @@
-; using '#lang rosette/safe' need (require rosette/lib/match) and lifting symbol? and index-of
-#lang rosette
+#lang rosette/safe
+
+(require rosette/lib/match (only-in racket/base error))
 
 (provide (all-defined-out))
 
@@ -8,7 +9,6 @@
 (define (ltl-eval formula [lookup (lambda (dummy) #f)])
   (cond
     [(boolean? formula) formula]
-    [(symbol? formula) (lookup formula)]
     [(ltl-formula? formula) (match formula
       [(ltl-formula 'not value)
        (define f (ltl-eval value lookup))
@@ -19,18 +19,24 @@
        ]
       [(ltl-formula 'and value)
        (define fs (map (lambda (f) (ltl-eval f lookup)) value))
+       (define fsWOBool (filter (lambda (f) (not (equal? f #t))) fs)) ; drops #t
        (cond
-         [(andmap boolean? fs) (andmap identity fs)]
-         [(= (length fs) 1) (first fs)] ; 'and with one formula is just that formula
-         [else (ltl-formula 'and fs)]
+         [(andmap boolean? fsWOBool) (andmap identity fsWOBool)]
+         [(member #f fsWOBool) #f] ; a conjunction contains a false is false
+         [(= (length fsWOBool) 0) #t] ; an empty conjunction is a conjunction of trues
+         [(= (length fsWOBool) 1) (first fsWOBool)] ; 'and with one formula is just that formula
+         [else (ltl-formula 'and fsWOBool)]
          )
        ]
       [(ltl-formula 'or value)
         (define fs (map (lambda (f) (ltl-eval f lookup)) value))
+        (define fsWOBool (filter (lambda (f) (not (equal? f #f))) fs)) ; drops #f
         (cond
-          [(andmap boolean? fs) (ormap identity fs)]
-          [(= (length fs) 1) (first fs)] ; 'or with one formula is just that formula
-          [else (ltl-formula 'and fs)]
+          [(andmap boolean? fsWOBool) (ormap identity fs)]
+          [(member #t fsWOBool) #t] ; a disjunction contains a true is true
+          [(= (length fsWOBool) 0) #f] ; an empty disjunction is a conjunction of falses
+          [(= (length fsWOBool) 1) (first fsWOBool)] ; 'or with one formula is just that formula
+          [else (ltl-formula 'or fs)]
           )
         ]
       [(ltl-formula 'next value)
@@ -52,7 +58,7 @@
        ]
       [_ (error 'err "unknown ltl-formula ~a" formula)]
       )]
-    [else (error 'err "unknown formula ~a" formula)]
+    [else (lookup formula)]
     ))
 
 (define (ltl-run formula stream)
