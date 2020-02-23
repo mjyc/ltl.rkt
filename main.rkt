@@ -53,6 +53,7 @@
        ]
       [(ltl-formula 'eventually value)
        (define f (ltl-eval value lookup))
+       ; (displayln (list f value lookup))
        (match f
          [#t #t] ; eventually true is true
          [#f formula]
@@ -63,3 +64,18 @@
       )]
     [else (error 'err "unknown formula ~a" formula)]
     ))
+
+(define (ltl-run formula stream)
+  (define (step cur-value cur-formula)
+    (define (lookup variable)
+      (equal? variable cur-value)
+      )
+    (ltl-eval cur-formula lookup)
+    )
+  (define f
+    (foldl
+      step
+      formula
+      stream))
+  f
+  )
