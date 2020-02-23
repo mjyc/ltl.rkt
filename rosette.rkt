@@ -9,13 +9,6 @@
 (define (ltl-eval formula [lookup (lambda (dummy) #f)])
   (cond
     [(boolean? formula) formula]
-    ; [(ltl-formula? formula)
-    ;   (cond
-    ;     [(equal? (ltl-formula-type formula) 'or) (define a #t) a]
-    ;     [(equal? (ltl-formula-type formula) 'and) #f]
-    ;     [else (error 'err "unknown ltl-formula ~a" formula)]
-    ;     )
-    ;   ]
     [(ltl-formula? formula)
       (define type (ltl-formula-type formula))
       (define value (ltl-formula-value formula))
@@ -73,13 +66,7 @@
 
 (define (ltl-run formula stream)
   (define (step cur-value cur-formula)
-    (displayln (list "====" cur-value))
     (define (lookup variable)
-      (displayln "===")
-      (print cur-value)
-      (displayln "")
-      (displayln variable)
-      (displayln "")
       (equal? variable cur-value)
       )
     (ltl-eval cur-formula lookup)
