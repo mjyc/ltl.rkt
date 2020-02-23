@@ -68,31 +68,68 @@
 (define (test-eventually2)
   (test-case
     "test-eventually2"
+    (logger-debug "---")
+
     (define-symbolic sb boolean?)
 
+    ; (define stream
+    ;   (list 'a 'b 'c (if sb 'd 'a)))
     (define stream
-      (list 'a 'b 'c (if sb 'd 'a)))
+      (list (if sb 'b 'a) 'd))
     (define formula (ltl-formula 'eventually
       (ltl-formula 'and
         (list 'b (ltl-formula 'eventually 'd)))))
 
+    ; (define outf (ltl-run formula stream))
+    ; (displayln "--done--")
+    ; (print outf)
+    ; (displayln "")
+    ; (displayln (ltl-formula? outf))
+    ; (print (ltl-formula-type outf))
+    ; (displayln "")
+    ; (print (ltl-formula-value outf))
+    ; (displayln "")
     (define sol (solve
       (assert
         (equal?
           (ltl-run formula stream)
           #t)
-        )))
+          ; (ltl-formula-type (ltl-run formula stream))
+          ; 'or)
+          ; (first (ltl-formula-value outf))
+          ; #t)
+          )))
     (check-true (sat? sol))
     (check-equal? (evaluate sb sol) #t)
     )
   )
 
+(define (test3)
+  (test-case
+    "test3"
+    (define-symbolic sb boolean?)
+
+    (define formula (ltl-formula (if sb 'and 'or) (list #t #f)))
+
+    (define sol (solve
+      (assert
+        (equal?
+          (ltl-eval formula)
+          #t)
+        )))
+    (check-true (sat? sol))
+    (logger-debug (evaluate sb sol))
+    ; (check-equal? (evaluate sb sol) #f)
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
-    (test-next)
-    (test-always)
-    (test-eventually)
+    ; (test-next)
+    ; (test-always)
+    ; (test-eventually)
     (test-eventually2)
+    ; (test3)
     )
   (run-tests ltl-tests)
   )
