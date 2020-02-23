@@ -71,13 +71,19 @@
     (define-symbolic sb boolean?)
 
     (define stream
-      (list 'a 'b 'c 'd 'b))
+      (list 'a 'b 'c (if sb 'd 'a)))
     (define formula (ltl-formula 'eventually
       (ltl-formula 'and
         (list 'b (ltl-formula 'eventually 'd)))))
 
-    (define actual (ltl-run formula stream))
-    (check-true actual)
+    (define sol (solve
+      (assert
+        (equal?
+          (ltl-run formula stream)
+          #t)
+        )))
+    (check-true (sat? sol))
+    (check-equal? (evaluate sb sol) #t)
     )
   )
 

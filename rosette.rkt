@@ -23,7 +23,7 @@
        (cond
          [(andmap boolean? fsWOBool) (andmap identity fsWOBool)]
          [(member #f fsWOBool) #f] ; a conjunction contains a false is false
-         [(= (length fsWOBool) 0) #t] ; an empty conjunction is a conjunction of trues
+         [(= (length fsWOBool) 0) #t] ; an empty list is a conjunction of trues
          [(= (length fsWOBool) 1) (first fsWOBool)] ; 'and with one formula is just that formula
          [else (ltl-formula 'and fsWOBool)]
          )
@@ -34,9 +34,9 @@
         (cond
           [(andmap boolean? fsWOBool) (ormap identity fs)]
           [(member #t fsWOBool) #t] ; a disjunction contains a true is true
-          [(= (length fsWOBool) 0) #f] ; an empty disjunction is a conjunction of falses
+          [(= (length fsWOBool) 0) #f] ; an empty list is a disjunction of falses
           [(= (length fsWOBool) 1) (first fsWOBool)] ; 'or with one formula is just that formula
-          [else (ltl-formula 'or fs)]
+          [else (ltl-formula 'or fsWOBool)]
           )
         ]
       [(ltl-formula 'next value)
@@ -56,7 +56,7 @@
          [else (ltl-formula 'or (list f formula))] ; add the unevaluated formula
          )
        ]
-      [_ (error 'err "unknown ltl-formula ~a" formula)]
+      [_ formula]
       )]
     [else (lookup formula)]
     ))

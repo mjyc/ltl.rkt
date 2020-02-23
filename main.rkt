@@ -36,7 +36,7 @@
           [(member #t fsWOBool) #t] ; a disjunction contains a true is true
           [(= (length fsWOBool) 0) #f] ; an empty disjunction is a conjunction of falses
           [(= (length fsWOBool) 1) (first fsWOBool)] ; 'or with one formula is just that formula
-          [else (ltl-formula 'or fs)]
+          [else (ltl-formula 'or fsWOBool)]
           )
         ]
       [(ltl-formula 'next value)
