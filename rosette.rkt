@@ -43,22 +43,22 @@
             )
           ]
         [(equal? type 'next)
-         value
-         ]
+          value
+          ]
         [(equal? type 'always)
-         (define f (ltl-eval value lookup))
-         (cond
-           [(boolean? f) (if f formula #f)]
-         [else (ltl-formula 'and (list f formula))] ; add the unevaluated formula
-         )
-         ]
+          (define f (ltl-eval value lookup))
+          (cond
+            [(boolean? f) (if f formula #f)]
+            [else (ltl-formula 'and (list f formula))] ; add the unevaluated formula
+            )
+          ]
         [(equal? type 'eventually)
-         (define f (ltl-eval value lookup))
-         (cond
-           [(boolean? f) (if f #t formula)]
-         [else (ltl-formula 'or (list f formula))] ; add the unevaluated formula
-         )
-         ]
+          (define f (ltl-eval value lookup))
+          (cond
+            [(boolean? f) (if f #t formula)]
+            [else (ltl-formula 'or (list f formula))] ; add the unevaluated formula
+            )
+          ]
         [else (error 'err "unknown ltl-formula ~a" formula)]
         )]
     [else (lookup formula)]
