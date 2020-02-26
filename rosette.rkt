@@ -6,7 +6,7 @@
 
 (struct ltl-formula (type value) #:transparent)
 
-(define (ltl-eval formula [lookup (lambda (dummy) #f)])
+(define (ltl-eval formula [lookup (lambda (dummy) #f)] [terminal #f])
   (cond
     [(boolean? formula) formula]
     [(ltl-formula? formula)
@@ -14,14 +14,14 @@
       (define value (ltl-formula-value formula))
       (cond
         [(equal? type 'not)
-          (define f (ltl-eval value lookup))
+          (define f (ltl-eval terminal value lookup))
           (match f
-           [#t #f]
-           [#f #t]
-           [_ (ltl-formula 'not f)])
+            [#t #f]
+            [#f #t]
+            [_ (ltl-formula 'not f)])
           ]
         [(equal? type 'and)
-          (define fs (map (lambda (f) (ltl-eval f lookup)) value))
+          (define fs (map (lambda (f) (ltl-eval f lookup terminal)) value))
           (define fsWOBool (filter (lambda (f) (not (equal? f #t))) fs)) ; drops #t
           (cond
             [(andmap boolean? fsWOBool) (andmap identity fsWOBool)]
@@ -32,7 +32,7 @@
             )
           ]
         [(equal? type 'or)
-          (define fs (map (lambda (f) (ltl-eval f lookup)) value))
+          (define fs (map (lambda (f) (ltl-eval f lookup terminal)) value))
           (define fsWOBool (filter (lambda (f) (not (equal? f #f))) fs)) ; drops #f
           (cond
             [(andmap boolean? fsWOBool) (ormap identity fs)]
@@ -46,22 +46,22 @@
           value
           ]
         [(equal? type 'always)
-          (define f (ltl-eval value lookup))
+          (define f (ltl-eval value lookup terminal))
           (cond
-            [(boolean? f) (if f formula #f)]
-            [else (ltl-formula 'and (list f formula))] ; add the unevaluated formula
+            [(boolean? f) (if f (if terminal #t formula) #f)]
+            [else (if terminal #t (ltl-formula 'and (list f formula)))] ; add the unevaluated formula
             )
           ]
         [(equal? type 'eventually)
-          (define f (ltl-eval value lookup))
+          (define f (ltl-eval value lookup terminal))
           (cond
-            [(boolean? f) (if f #t formula)]
-            [else (ltl-formula 'or (list f formula))] ; add the unevaluated formula
+            [(boolean? f) (if f #t (if terminal #f formula))]
+            [else (if terminal #f (ltl-formula 'or (list f formula)))] ; add the unevaluated formula
             )
           ]
         [else (error 'err "unknown ltl-formula ~a" formula)]
         )]
-    [else (lookup formula)]
+    [else (if terminal formula (lookup formula))]
     ))
 
 (define (ltl-run formula stream)
@@ -76,6 +76,5 @@
       step
       formula
       stream))
-  (debug "f" f)
-  f
+  (ltl-eval f identity #t)
   )

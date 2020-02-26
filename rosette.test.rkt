@@ -2,7 +2,7 @@
 
 (require rackunit rackunit/text-ui
   "./rosette.rkt"
-  (prefix-in logger- "./logger.rkt")
+  "./logger.rkt"
   )
 
 (define (test-next)
@@ -38,7 +38,7 @@
       (assert
         (equal?
           (ltl-run formula stream)
-          (ltl-formula 'always 'a))
+          #t)
         )))
     (check-true (sat? sol))
     (check-equal? (evaluate sb sol) #f)
@@ -87,25 +87,25 @@
     )
   )
 
-(define (test-eventually-final)
+(define (test-ltl-run)
   (test-case
-    "test-eventually-final"
+    "test-ltl-run"
     (define-symbolic sb boolean?)
 
-    (define stream
-      (list 'a (if sb 'b 'a) 'c 'd))
-    (define formula (ltl-formula 'eventually
+    (define stream1
+      (list 'a 'b 'a 'a))
+    (define formula1 (ltl-formula 'eventually
       (ltl-formula 'and
         (list 'b (ltl-formula 'eventually 'd)))))
+    (define actual1 (ltl-run formula1 stream1))
+    (check-equal? actual1 #f)
 
-    (define sol (solve
-      (assert
-        (equal?
-          (ltl-run formula stream)
-          #t)
-        )))
-    (check-true (sat? sol))
-    (check-equal? (evaluate sb sol) #t)
+    (define stream2
+      (list 'a 'a 'a 'a))
+    (define formula2 (ltl-formula 'always
+      'a))
+    (define actual2 (ltl-run formula2 stream2))
+    (check-equal? actual2 #t)
     )
   )
 
@@ -115,7 +115,7 @@
     (test-always)
     (test-eventually)
     (test-eventually-nested)
-    (test-eventually-final)
+    (test-ltl-run)
     )
   (run-tests ltl-tests)
   )
