@@ -65,9 +65,31 @@
     )
   )
 
-(define (test-eventually2)
+(define (test-eventually-nested)
   (test-case
-    "test-eventually2"
+    "test-eventually-nested"
+    (define-symbolic sb boolean?)
+
+    (define stream
+      (list 'a (if sb 'b 'a) 'c 'd))
+    (define formula (ltl-formula 'eventually
+      (ltl-formula 'and
+        (list 'b (ltl-formula 'eventually 'd)))))
+
+    (define sol (solve
+      (assert
+        (equal?
+          (ltl-run formula stream)
+          #t)
+        )))
+    (check-true (sat? sol))
+    (check-equal? (evaluate sb sol) #t)
+    )
+  )
+
+(define (test-eventually-final)
+  (test-case
+    "test-eventually-final"
     (define-symbolic sb boolean?)
 
     (define stream
@@ -92,7 +114,8 @@
     (test-next)
     (test-always)
     (test-eventually)
-    (test-eventually2)
+    (test-eventually-nested)
+    (test-eventually-final)
     )
   (run-tests ltl-tests)
   )

@@ -1,6 +1,6 @@
 #lang rosette/safe
 
-(require rosette/lib/match (only-in racket/base error))
+(require rosette/lib/match (only-in racket/base error) "./logger.rkt")
 
 (provide (all-defined-out))
 
@@ -76,5 +76,6 @@
       step
       formula
       stream))
+  (debug "f" f)
   f
   )
