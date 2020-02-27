@@ -122,6 +122,31 @@
     )
   )
 
+(define (test-until)
+  (test-case
+    "test-until"
+    (define stream
+      (list
+        #hash((a . #t) (b . #f))
+        #hash((a . #t) (b . #f))
+        #hash((a . #t) (b . #f))
+        #hash((a . #f) (b . #t))
+        ))
+    (define formula (ltl-formula 'until (list (list 'a #t) (list 'b #t))))
+    (define actual (ltl-run formula stream))
+    (check-equal? actual #t)
+
+    (define stream2
+      (list
+        #hash((a . #t) (b . #f))
+        #hash((a . #t) (b . #f))
+        ))
+    (define formula2 (ltl-formula 'until (list (list 'a #t) (list 'b #t))))
+    (define actual2 (ltl-run formula2 stream2))
+    (check-equal? actual2 #f)
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
     (test-boolean)
@@ -133,6 +158,7 @@
     (test-always)
     (test-eventually)
     (test-eventually-hash)
+    (test-until)
     )
   (run-tests ltl-tests)
   )

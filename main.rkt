@@ -44,7 +44,7 @@
           ]
         [(equal? type 'if)
           (unless (equal? (length value) 2)
-            (error 'ltl-eval "invalid \"value\" argument ~a" value)
+            (error 'ltl-eval "input \"value\" must be a list with 2 elements")
             )
           (define f (ltl-formula 'or (list (ltl-formula 'not (first value)) (second value))))
           (ltl-eval f lookup terminal)
@@ -64,6 +64,33 @@
           (cond
             [(boolean? f) (if f #t (if terminal #f formula))]
             [else (if terminal #f (ltl-formula 'or (list f formula)))] ; add the unevaluated formula
+            )
+          ]
+        [(equal? type 'until)
+          (unless (equal? (length value) 2)
+            (error 'ltl-eval "input \"value\" must be a list with 2 elements")
+            )
+
+          (define f1 (ltl-eval (first value) lookup terminal))
+          (define f2 (ltl-eval (second value) lookup terminal))
+          (cond
+            [(equal? f2 #t) #t]
+            [(equal? f1 #f) #f]
+            [else
+              (if terminal
+                #f
+                (ltl-formula 'until
+                  (list
+                    (if (equal? f1 #t)
+                      (first value)
+                      (ltl-formula 'and (list f1 (first value))))
+                    (if (equal? f2 #f)
+                      (second value)
+                      (ltl-formula 'or (list f2 (second value))))
+                    )
+                  )
+                )
+              ]
             )
           ]
         [else (error 'ltl-eval "unknown ltl-formula ~a" formula)]
