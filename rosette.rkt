@@ -1,6 +1,6 @@
 #lang rosette/safe
 
-(require rosette/lib/match (only-in racket/base error) "./logger.rkt")
+(require rosette/lib/match (only-in racket/base error hash?) "./logger.rkt")
 
 (provide (all-defined-out))
 

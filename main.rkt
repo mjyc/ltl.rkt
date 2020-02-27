@@ -74,7 +74,11 @@
 (define (ltl-run formula stream)
   (define (step cur-value cur-formula)
     (define (lookup variable)
-      (equal? variable cur-value)
+      (if
+        (hash? cur-value)
+        (equal? (second variable) (hash-ref cur-value (first variable)))
+        (equal? variable cur-value)
+        )
       )
     (ltl-eval cur-formula lookup)
     )

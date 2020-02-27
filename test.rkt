@@ -105,6 +105,23 @@
     )
   )
 
+(define (test-eventually-hash)
+  (test-case
+    "test-eventually-hash"
+    (define stream
+      (list
+        #hash((a . #f) (b . #f))
+        #hash((a . #t) (b . #f))
+        #hash((a . #f) (b . #t))
+        ))
+    (define formula (ltl-formula 'eventually
+      (ltl-formula 'and
+        (list (list 'a #t) (ltl-formula 'eventually (list 'b #t))))))
+    (define actual (ltl-run formula stream))
+    (check-equal? actual #t)
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
     (test-boolean)
@@ -115,6 +132,7 @@
     (test-next)
     (test-always)
     (test-eventually)
+    (test-eventually-hash)
     )
   (run-tests ltl-tests)
   )
