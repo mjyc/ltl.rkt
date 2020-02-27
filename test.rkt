@@ -46,6 +46,19 @@
     )
   )
 
+(define (test-if)
+  (test-case
+    "test-if"
+    (check-property
+      (property (
+        [bool1 arbitrary-boolean]
+        [bool2 arbitrary-boolean]
+        )
+      (eqv? (ltl-eval (ltl-formula 'if (list bool1 bool2))) (or (not bool1) bool2))
+      ))
+    )
+  )
+
 (define (test-next)
   (test-case
     "test-next"
@@ -98,6 +111,7 @@
     (test-not)
     (test-and)
     (test-or)
+    (test-if)
     (test-next)
     (test-always)
     (test-eventually)

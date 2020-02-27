@@ -14,7 +14,7 @@
       (define value (ltl-formula-value formula))
       (cond
         [(equal? type 'not)
-          (define f (ltl-eval terminal value lookup))
+          (define f (ltl-eval value lookup terminal))
           (match f
             [#t #f]
             [#f #t]
@@ -42,6 +42,13 @@
             [else (ltl-formula 'or fsWOBool)]
             )
           ]
+        [(equal? type 'if)
+          (unless (equal? (length value) 2)
+            (error 'ltl-eval "invalid \"value\" argument ~a" value)
+            )
+          (define f (ltl-formula 'or (list (ltl-formula 'not (first value)) (second value))))
+          (ltl-eval f lookup terminal)
+          ]
         [(equal? type 'next)
           value
           ]
@@ -59,7 +66,7 @@
             [else (if terminal #f (ltl-formula 'or (list f formula)))] ; add the unevaluated formula
             )
           ]
-        [else (error 'err "unknown ltl-formula ~a" formula)]
+        [else (error 'ltl-eval "unknown ltl-formula ~a" formula)]
         )]
     [else (if terminal formula (lookup formula))]
     ))
