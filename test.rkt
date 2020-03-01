@@ -116,7 +116,7 @@
         ))
     (define formula (ltl-formula 'eventually
       (ltl-formula 'and
-        (list (list 'a #t) (ltl-formula 'eventually (list 'b #t))))))
+        (list (cons 'a #t) (ltl-formula 'eventually (cons 'b #t))))))
     (define actual (ltl-run formula stream))
     (check-equal? actual #t)
     )
@@ -132,7 +132,7 @@
         #hash((a . #t) (b . #f))
         #hash((a . #f) (b . #t))
         ))
-    (define formula (ltl-formula 'until (list (list 'a #t) (list 'b #t))))
+    (define formula (ltl-formula 'until (list (cons 'a #t) (cons 'b #t))))
     (define actual (ltl-run formula stream))
     (check-equal? actual #t)
 
@@ -141,7 +141,7 @@
         #hash((a . #t) (b . #f))
         #hash((a . #t) (b . #f))
         ))
-    (define formula2 (ltl-formula 'until (list (list 'a #t) (list 'b #t))))
+    (define formula2 (ltl-formula 'until (list (cons 'a #t) (cons 'b #t))))
     (define actual2 (ltl-run formula2 stream2))
     (check-equal? actual2 #f)
     )

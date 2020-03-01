@@ -44,7 +44,7 @@
           ]
         [(equal? type 'if)
           (unless (equal? (length value) 2)
-            (error 'ltl-eval "input \"value\" must be a list with 2 elements")
+            (error 'ltl-eval "invalid \"value\" argument ~a" value)
             )
           (define f (ltl-formula 'or (list (ltl-formula 'not (first value)) (second value))))
           (ltl-eval f lookup terminal)
@@ -103,7 +103,7 @@
     (define (lookup variable)
       (if
         (hash? cur-value)
-        (equal? (second variable) (hash-ref cur-value (first variable)))
+        (equal? (cdr variable) (hash-ref cur-value (car variable)))
         (equal? variable cur-value)
         )
       )

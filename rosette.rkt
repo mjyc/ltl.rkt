@@ -1,6 +1,6 @@
 #lang rosette/safe
 
-(require rosette/lib/match (only-in racket/base error hash?) "./logger.rkt")
+(require rosette/lib/match (only-in racket/base error hash? hash-ref) "./logger.rkt")
 
 (provide (all-defined-out))
 
@@ -93,7 +93,7 @@
               ]
             )
           ]
-        [else (error 'err "unknown ltl-formula ~a" formula)]
+        [else (error 'ltl-eval "unknown ltl-formula ~a" formula)]
         )]
     [else (if terminal formula (lookup formula))]
     ))
@@ -101,7 +101,11 @@
 (define (ltl-run formula stream)
   (define (step cur-value cur-formula)
     (define (lookup variable)
-      (equal? variable cur-value)
+      (if
+        (hash? cur-value)
+        (equal? (cdr variable) (hash-ref cur-value (car variable)))
+        (equal? variable cur-value)
+        )
       )
     (ltl-eval cur-formula lookup)
     )
