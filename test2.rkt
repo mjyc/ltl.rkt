@@ -91,7 +91,21 @@
         (define stream (map (lambda (x) (if x 'a x)) lst))
         (define actual
           (ltleval formula stream))
-        (displayln (list "actual expected" actual expected))
+        (eqv? actual expected)
+        ))
+    )
+  )
+
+(define (test-eventually)
+  (test-case
+    "test-eventually"
+    (check-property
+      (property ([lst (arbitrary-list arbitrary-boolean)])
+        (define expected (ormap identity lst))
+        (define formula (ltleventually (ltlval 'a)))
+        (define stream (map (lambda (x) (if x 'a x)) lst))
+        (define actual
+          (ltleval formula stream))
         (eqv? actual expected)
         ))
     )
@@ -100,13 +114,14 @@
 
 (module+ test
   (define/provide-test-suite ltl-tests
-    ; (test-val)
-    ; (test-not)
-    ; (test-and)
-    ; (test-or)
-    ; (test-if)
-    ; (test-next)
+    (test-val)
+    (test-not)
+    (test-and)
+    (test-or)
+    (test-if)
+    (test-next)
     (test-always)
+    (test-eventually)
     )
   (run-tests ltl-tests)
   )

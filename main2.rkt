@@ -64,7 +64,15 @@
         [else (ltland f formula)]
         )
       ]
-    [(ltleventually a1) '()]
+    [(ltleventually a1)
+      (define f (ltlinterpret a1 lookup))
+      (cond
+        [(null? lookup) #f]
+        [(equal? f #t) #t]
+        [(equal? f #f) formula]
+        [else (ltlor f formula)]
+        )
+      ]
     [(ltluntil a1 a2) '()]
     )
   )
@@ -74,10 +82,9 @@
     (define (lookup variable)
       (equal? variable cur-value)
       )
-    (if (boolean? cur-formula)
-      (ltlinterpret (ltlval cur-formula) lookup)
-      (ltlinterpret cur-formula lookup)
-      )
+    (ltlinterpret
+      (if (boolean? cur-formula) (ltlval cur-formula) cur-formula)
+      lookup)
     )
   (define f
     (foldl
