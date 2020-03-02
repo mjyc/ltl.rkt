@@ -1,9 +1,6 @@
 #lang rosette/safe
 
-(require rackunit rackunit/text-ui
-  "./rosette.rkt"
-  "./logger.rkt"
-  )
+(require rackunit rackunit/text-ui "./rosette2.rkt")
 
 (define (test-next)
   (test-case
@@ -12,14 +9,15 @@
 
     (define stream
       (if sb (list 'b 'b 'b) (list 'b 'b 'a)))
-    (define formula (ltl-formula 'next (ltl-formula 'next 'a)))
+    (define formula (ltlnext (ltlnext (ltlval 'a))))
 
-    (define sol (solve
-      (assert
-        (equal?
-          (ltl-run formula stream)
-          #t)
-        )))
+    (define sol
+      (solve
+        (assert
+          (equal? (ltleval formula stream) #t)
+          )
+        )
+      )
     (check-true (sat? sol))
     (check-equal? (evaluate sb sol) #f)
     )
@@ -32,12 +30,12 @@
 
     (define stream
       (if sb (list 'a 'a 'b) (list 'a 'a 'a)))
-    (define formula (ltl-formula 'always 'a))
+    (define formula (ltlalways (ltlval 'a)))
 
     (define sol (solve
       (assert
         (equal?
-          (ltl-run formula stream)
+          (ltleval formula stream)
           #t)
         )))
     (check-true (sat? sol))
@@ -52,12 +50,12 @@
 
     (define stream
       (if sb (list 'b 'b 'b) (list 'b 'b 'a)))
-    (define formula (ltl-formula 'eventually 'a))
+    (define formula (ltleventually (ltlval 'a)))
 
     (define sol (solve
       (assert
         (equal?
-          (ltl-run formula stream)
+          (ltleval formula stream)
           #t)
         )))
     (check-true (sat? sol))
@@ -72,14 +70,13 @@
 
     (define stream
       (list 'a (if sb 'b 'a) 'c 'd))
-    (define formula (ltl-formula 'eventually
-      (ltl-formula 'and
-        (list 'b (ltl-formula 'eventually 'd)))))
+    (define formula
+      (ltleventually (ltland (ltlval 'b) (ltleventually (ltlval 'd)))))
 
     (define sol (solve
       (assert
         (equal?
-          (ltl-run formula stream)
+          (ltleval formula stream)
           #t)
         )))
     (check-true (sat? sol))
@@ -87,24 +84,20 @@
     )
   )
 
-(define (test-ltl-run)
+(define (test-ltleval)
   (test-case
-    "test-ltl-run"
+    "test-ltleval"
     (define-symbolic sb boolean?)
 
-    (define stream1
-      (list 'a 'b 'a 'a))
-    (define formula1 (ltl-formula 'eventually
-      (ltl-formula 'and
-        (list 'b (ltl-formula 'eventually 'd)))))
-    (define actual1 (ltl-run formula1 stream1))
+    (define stream1 (list 'a 'b 'a 'a))
+    (define formula1
+      (ltleventually (ltland (ltlval 'b) (ltleventually (ltlval 'd)))))
+    (define actual1 (ltleval formula1 stream1))
     (check-equal? actual1 #f)
 
-    (define stream2
-      (list 'a 'a 'a 'a))
-    (define formula2 (ltl-formula 'always
-      'a))
-    (define actual2 (ltl-run formula2 stream2))
+    (define stream2 (list 'a 'a 'a 'a))
+    (define formula2 (ltlalways (ltlval 'a)))
+    (define actual2 (ltleval formula2 stream2))
     (check-equal? actual2 #t)
     )
   )
@@ -115,7 +108,7 @@
     (test-always)
     (test-eventually)
     (test-eventually-nested)
-    (test-ltl-run)
+    (test-ltleval)
     )
   (run-tests ltl-tests)
   )

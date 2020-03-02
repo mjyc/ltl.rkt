@@ -3,16 +3,17 @@
 (require
   quickcheck rackunit/quickcheck
   rackunit rackunit/text-ui
-  "./main.rkt"
+  "./main2.rkt"
   )
 
-(define (test-boolean)
+(define (test-val)
   (test-case
-    "test-boolean"
+    "test-val"
     (check-property
       (property ([bool arbitrary-boolean])
-        (eqv? (ltl-eval bool) bool)
-        ))
+        (eqv? (ltlinterpret (ltlval bool)) bool)
+        )
+      )
     )
   )
 
@@ -21,8 +22,9 @@
     "test-not"
     (check-property
       (property ([bool arbitrary-boolean])
-        (eqv? (ltl-eval (ltl-formula 'not bool)) (not bool))
-        ))
+        (eqv? (ltlinterpret (ltlnot (ltlval bool))) (not bool))
+        )
+      )
     )
   )
 
@@ -30,9 +32,13 @@
   (test-case
     "test-and"
     (check-property
-      (property ([lst (arbitrary-list arbitrary-boolean)])
-        (eqv? (ltl-eval (ltl-formula 'and lst)) (not (index-of lst #f)))
-        ))
+      (property ([bool1 arbitrary-boolean] [bool2 arbitrary-boolean])
+        (eqv?
+          (ltlinterpret (ltland (ltlval bool1) (ltlval bool2)))
+          (andmap identity (list bool1 bool2))
+          )
+        )
+      )
     )
   )
 
@@ -40,9 +46,13 @@
   (test-case
     "test-or"
     (check-property
-      (property ([lst (arbitrary-list arbitrary-boolean)])
-        (eqv? (ltl-eval (ltl-formula 'or lst)) (not (not (index-of lst #t))))
-        ))
+      (property ([bool1 arbitrary-boolean] [bool2 arbitrary-boolean])
+        (eqv?
+          (ltlinterpret (ltlor (ltlval bool1) (ltlval bool2)))
+          (ormap identity (list bool1 bool2))
+          )
+        )
+      )
     )
   )
 
@@ -50,12 +60,13 @@
   (test-case
     "test-if"
     (check-property
-      (property (
-        [bool1 arbitrary-boolean]
-        [bool2 arbitrary-boolean]
+      (property ([bool1 arbitrary-boolean] [bool2 arbitrary-boolean])
+        (eqv?
+          (ltlinterpret (ltlif (ltlval bool1) (ltlval bool2)))
+          (or (not bool1) bool2)
+          )
         )
-      (eqv? (ltl-eval (ltl-formula 'if (list bool1 bool2))) (or (not bool1) bool2))
-      ))
+      )
     )
   )
 
@@ -64,8 +75,9 @@
     "test-next"
     (check-property
       (property ([bool arbitrary-boolean])
-        (eqv? (ltl-eval (ltl-eval (ltl-formula 'next bool))) bool)
-        ))
+        (eqv? (ltlinterpret (ltlinterpret (ltlnext (ltlval bool)))) bool)
+        )
+      )
     )
   )
 
@@ -75,13 +87,10 @@
     (check-property
       (property ([lst (arbitrary-list arbitrary-boolean)])
         (define expected (andmap identity lst))
-        (define formula (ltl-formula 'always 'a))
-        (define f
-          (foldl
-            (lambda (v l) (ltl-eval l (lambda (dummy) v)))
-            formula
-            lst))
-        (define actual (if (not (boolean? f)) #t f))
+        (define formula (ltlalways (ltlval 'a)))
+        (define stream (map (lambda (x) (if x 'a x)) lst))
+        (define actual
+          (ltleval formula stream))
         (eqv? actual expected)
         ))
     )
@@ -93,32 +102,12 @@
     (check-property
       (property ([lst (arbitrary-list arbitrary-boolean)])
         (define expected (ormap identity lst))
-        (define formula (ltl-formula 'eventually 'a))
-        (define f
-          (foldl
-            (lambda (v l) (ltl-eval l (lambda (_) v)))
-            formula
-            lst))
-        (define actual (if (boolean? f) f #f))
+        (define formula (ltleventually (ltlval 'a)))
+        (define stream (map (lambda (x) (if x 'a x)) lst))
+        (define actual
+          (ltleval formula stream))
         (eqv? actual expected)
         ))
-    )
-  )
-
-(define (test-eventually-hash)
-  (test-case
-    "test-eventually-hash"
-    (define stream
-      (list
-        #hash((a . #f) (b . #f))
-        #hash((a . #t) (b . #f))
-        #hash((a . #f) (b . #t))
-        ))
-    (define formula (ltl-formula 'eventually
-      (ltl-formula 'and
-        (list (cons 'a #t) (ltl-formula 'eventually (cons 'b #t))))))
-    (define actual (ltl-run formula stream))
-    (check-equal? actual #t)
     )
   )
 
@@ -132,8 +121,8 @@
         #hash((a . #t) (b . #f))
         #hash((a . #f) (b . #t))
         ))
-    (define formula (ltl-formula 'until (list (cons 'a #t) (cons 'b #t))))
-    (define actual (ltl-run formula stream))
+    (define formula (ltluntil (ltlval (cons 'a #t)) (ltlval (cons 'b #t))))
+    (define actual (ltleval formula stream))
     (check-equal? actual #t)
 
     (define stream2
@@ -141,15 +130,16 @@
         #hash((a . #t) (b . #f))
         #hash((a . #t) (b . #f))
         ))
-    (define formula2 (ltl-formula 'until (list (cons 'a #t) (cons 'b #t))))
-    (define actual2 (ltl-run formula2 stream2))
+    (define formula2 (ltluntil (ltlval (cons 'a #t)) (ltlval (cons 'b #t))))
+    (define actual2 (ltleval formula2 stream2))
     (check-equal? actual2 #f)
     )
   )
 
+
 (module+ test
   (define/provide-test-suite ltl-tests
-    (test-boolean)
+    (test-val)
     (test-not)
     (test-and)
     (test-or)
@@ -157,7 +147,6 @@
     (test-next)
     (test-always)
     (test-eventually)
-    (test-eventually-hash)
     (test-until)
     )
   (run-tests ltl-tests)
