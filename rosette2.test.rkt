@@ -23,9 +23,30 @@
     )
   )
 
+(define (test-always)
+  (test-case
+    "test-always"
+    (define-symbolic sb boolean?)
+
+    (define stream
+      (if sb (list 'a 'a 'b) (list 'a 'a 'a)))
+    (define formula (ltlalways (ltlval 'a)))
+
+    (define sol (solve
+      (assert
+        (equal?
+          (ltleval formula stream)
+          #t)
+        )))
+    (check-true (sat? sol))
+    (check-equal? (evaluate sb sol) #f)
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
     (test-next)
+    (test-always)
     )
   (run-tests ltl-tests)
   )
