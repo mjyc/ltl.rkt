@@ -73,14 +73,36 @@
         [else (ltlor f formula)]
         )
       ]
-    [(ltluntil a1 a2) '()]
+    [(ltluntil a1 a2)
+      (define f1 (ltlinterpret a1 lookup))
+      (define f2 (ltlinterpret a2 lookup))
+      (cond
+        [(null? lookup) #f]
+        [(equal? f2 #t) #t]
+        [(equal? f1 #f) #f]
+        [else
+          (ltluntil
+            (if (equal? f1 #t)
+              a1
+              (ltland f1 a1))
+            (if (equal? f2 #f)
+              a2
+              (ltlor f2 a2))
+            )
+          ]
+        )
+      ]
     )
   )
 
 (define (ltleval formula stream)
   (define (step cur-value cur-formula)
     (define (lookup variable)
-      (equal? variable cur-value)
+      (if
+        (hash? cur-value)
+        (equal? (cdr variable) (hash-ref cur-value (car variable)))
+        (equal? variable cur-value)
+        )
       )
     (ltlinterpret
       (if (boolean? cur-formula) (ltlval cur-formula) cur-formula)
