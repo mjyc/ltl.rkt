@@ -14,12 +14,12 @@
 (struct ltleventually (a1) #:transparent)
 (struct ltluntil (a1 a2) #:transparent)
 
-(define (ltlinterpret formula [lookup (lambda (dummy) #f)])
+(define (ltlinterpret formula [lookup null])
   (match formula
     [(ltlval a1)
       (cond
         [(boolean? a1) a1]
-        [else (lookup formula)]
+        [else (if (null? lookup) a1 (lookup a1))]
         )
       ]
     [(ltlnot a1)
@@ -55,8 +55,34 @@
     [(ltlnext a1)
       a1
       ]
-    [(ltlalways a1) '()]
+    [(ltlalways a1)
+      (define f (ltlinterpret a1 lookup))
+      (cond
+        [(null? lookup) #t]
+        [(equal? f #f) #f]
+        [(equal? f #t) formula]
+        [else (ltland f formula)]
+        )
+      ]
     [(ltleventually a1) '()]
     [(ltluntil a1 a2) '()]
     )
+  )
+
+(define (ltleval formula stream)
+  (define (step cur-value cur-formula)
+    (define (lookup variable)
+      (equal? variable cur-value)
+      )
+    (if (boolean? cur-formula)
+      (ltlinterpret (ltlval cur-formula) lookup)
+      (ltlinterpret cur-formula lookup)
+      )
+    )
+  (define f
+    (foldl
+      step
+      formula
+      stream))
+  (ltlinterpret (if (boolean? f) (ltlval f) f))
   )
