@@ -49,8 +49,9 @@
         [else (ltlor f1 f2)]
         )
       ]
-    [(ltlor a1 a2) '()]
-    [(ltlif a1 a2) '()]
+    [(ltlif a1 a2)
+      (ltlinterpret (ltlor (ltlnot a1) a2) lookup)
+      ]
     [(ltlnext a1) '()]
     [(ltlalways a1) '()]
     [(ltleventually a1) '()]

@@ -56,12 +56,27 @@
     )
   )
 
+(define (test-if)
+  (test-case
+    "test-if"
+    (check-property
+      (property ([bool1 arbitrary-boolean] [bool2 arbitrary-boolean])
+        (eqv?
+          (ltlinterpret (ltlif (ltlval bool1) (ltlval bool2)))
+          (or (not bool1) bool2)
+          )
+        )
+      )
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
     (test-val)
     (test-not)
     (test-and)
     (test-or)
+    (test-if)
     )
   (run-tests ltl-tests)
   )
