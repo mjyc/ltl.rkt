@@ -70,6 +70,17 @@
     )
   )
 
+(define (test-next)
+  (test-case
+    "test-next"
+    (check-property
+      (property ([bool arbitrary-boolean])
+        (eqv? (ltlinterpret (ltlinterpret (ltlnext (ltlval bool)))) bool)
+        )
+      )
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
     (test-val)
@@ -77,6 +88,7 @@
     (test-and)
     (test-or)
     (test-if)
+    (test-next)
     )
   (run-tests ltl-tests)
   )

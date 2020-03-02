@@ -52,7 +52,9 @@
     [(ltlif a1 a2)
       (ltlinterpret (ltlor (ltlnot a1) a2) lookup)
       ]
-    [(ltlnext a1) '()]
+    [(ltlnext a1)
+      a1
+      ]
     [(ltlalways a1) '()]
     [(ltleventually a1) '()]
     [(ltluntil a1 a2) '()]
