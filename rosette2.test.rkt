@@ -84,12 +84,31 @@
     )
   )
 
+(define (test-ltleval)
+  (test-case
+    "test-ltleval"
+    (define-symbolic sb boolean?)
+
+    (define stream1 (list 'a 'b 'a 'a))
+    (define formula1
+      (ltleventually (ltland (ltlval 'b) (ltleventually (ltlval 'd)))))
+    (define actual1 (ltleval formula1 stream1))
+    (check-equal? actual1 #f)
+
+    (define stream2 (list 'a 'a 'a 'a))
+    (define formula2 (ltlalways (ltlval 'a)))
+    (define actual2 (ltleval formula2 stream2))
+    (check-equal? actual2 #t)
+    )
+  )
+
 (module+ test
   (define/provide-test-suite ltl-tests
     (test-next)
     (test-always)
     (test-eventually)
     (test-eventually-nested)
+    (test-ltleval)
     )
   (run-tests ltl-tests)
   )
